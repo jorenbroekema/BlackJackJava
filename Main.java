@@ -4,24 +4,26 @@ import java.util.Collections;
 
 
 public class Main {
-
     // "Globals" of this app, used by both main() and by the player class
 
     // TODO: Change deck to be an ArrayList of Card objects, instead of strings.
-    public static ArrayList<String> deck = initDeck();
+    public static ArrayList<Card> deck = initDeck();
     public static ArrayList<String> graveyard;
     public static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
-
         // Init players and cards (2 each)
         Player player = new Player(false);
         giveCards(player, 2);
         player.addCards();
 
-        System.out.println(player.ownCards);
-        System.out.println(deck.size());
-        System.out.println(player.currentTotal);
+        for (Card c : player.ownCards) {
+            System.out.println(c.value + " of " + c.type + " ");
+        }
+        System.out.println();
+
+        System.out.println("Decksize: " + deck.size());
+        System.out.println("Player Total Score: " + player.currentTotal);
 
         // TODO: Add user interaction for triggering fold/quit/keep actions
 
@@ -30,8 +32,8 @@ public class Main {
         giveCards(dealer, 2); */
     }
 
-    private static ArrayList<String> initDeck(){
-        ArrayList<String> deck = new ArrayList<String>();
+    private static ArrayList<Card> initDeck(){
+        ArrayList<Card> deck = new ArrayList<Card>();
         for (int i = 0; i < 4; i++) {
             String cardType = "";
             switch (i){
@@ -49,24 +51,26 @@ public class Main {
             }
 
             for (int j = 2; j < 15; j++) {
+                String cardValue = "";
                 if (j > 10) {
                     switch (j) {
                         case 11:
-                            deck.add(cardType + "-Jack");
+                            cardValue = "Jack";
                             break;
                         case 12:
-                            deck.add(cardType + "-Queen");
+                            cardValue = "Queen";
                             break;
                         case 13:
-                            deck.add(cardType + "-King");
+                            cardValue = "King";
                             break;
                         case 14:
-                            deck.add(cardType + "-Ace");
+                            cardValue = "Ace";
                             break;
                     }
                 } else {
-                    deck.add(cardType + "-" + Integer.toString(j));
+                    cardValue = Integer.toString(j);
                 }
+                deck.add(new Card(cardType, cardValue));
             }
         }
 
@@ -85,8 +89,7 @@ public class Main {
 }
 
 class Player {
-
-    public ArrayList<String> ownCards = new ArrayList<String>();
+    public ArrayList<Card> ownCards = new ArrayList<Card>();
     public int currentTotal;
 
     private boolean isDealer;
@@ -98,17 +101,17 @@ class Player {
     public void addCards(){
         int total = 0;
         int amountOfAces = 0;
-        for (int i = 0; i < ownCards.size(); i++){
-            String stringValue = ownCards.get(i).split("-")[1];
-            int value = 0;
-            if (stringValue.equals("Ace")) {
+        for (int i = 0; i < ownCards.size(); i++) {
+            String value = ownCards.get(i).value;
+            int intValue = 0;
+            if (value.equals("Ace")) {
                 amountOfAces++;
-            } else if (stringValue.equals("Jack") || stringValue.equals("Queen") || stringValue.equals("King")) {
-                value = 10;
+            } else if (value.equals("Jack") || value.equals("Queen") || value.equals("King")) {
+                intValue = 10;
             } else {
-                value = Integer.parseInt(stringValue);
+                intValue = Integer.parseInt(value);
             }
-            total += value;
+            total += intValue;
         }
 
         // Choosing optimal value for Ace (1 or 11) depending on what the total becomes
@@ -129,4 +132,14 @@ class Player {
     // If Dealer, needs to stop at 17 or continue below 17
     // TODO: Add methods for these actions
 
+}
+
+class Card {
+    String type;
+    String value;
+
+    Card(String type, String value){
+        this.type = type;
+        this.value = value;
+    }
 }
