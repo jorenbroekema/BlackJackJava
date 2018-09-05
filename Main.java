@@ -89,13 +89,7 @@ public class Main {
             System.out.println(c.value + " of " + c.type + " ");
         }
         System.out.println("Your total score right now is: " + p.currentTotal);
-
-        System.out.println("Dealer's cards are the following:");
-        for (Card c : dealer.ownCards) {
-            System.out.println(c.value + " of " + c.type + " ");
-        }
-        System.out.println("Dealer's total score right now is: " + dealer.currentTotal);
-
+        System.out.println("Dealer has a :" + dealer.ownCards.get(0).value + " of " + dealer.ownCards.get(0).type);
         System.out.println("There are " + deck.size() + " cards left in the deck");
         System.out.println("Enter \"g\" to get another card. Enter \"f\" to fold. Enter \"q\" to quit the program. Then press \"Enter\"");
         String userInput = sc.nextLine();
