@@ -5,26 +5,26 @@ import java.util.Collections;
 // TODO: Split into multiple files, Card.java, Dealer.java, Player.java and import
 
 public class Main {
-    // "Globals" of this app, used by both main() and by the player class
+    // "Globals"
     public static ArrayList<Card> deck = initDeck();
     public static ArrayList<Card> graveyard = new ArrayList<Card>();
     public static Scanner sc = new Scanner(System.in);
     public static Dealer dealer = new Dealer();
+    public static Player player = new Player();
 
     public static void main(String[] args) {
-        // Init players and cards (2 each)
-        Player player = new Player();
         shuffleDeck();
+        initGame();
 
-        // TODO: Make an initGame method, this should also check if player or dealer has instant blackjack
+        // This starts the game and keeps things looping until the player decides to quit
+        askUserForInput();
+    }
+
+    private static void initGame(){
         giveCards(player, 2);
         giveCards(dealer, 2);
         player.calculateCardTotal();
-
         dealer.calculateCardTotal();
-
-        // This starts the game and keeps things looping until the player decides to quit
-        askUserForInput(player);
     }
 
     private static ArrayList<Card> initDeck(){
@@ -79,27 +79,27 @@ public class Main {
                 deck.remove(0);
             }
         } else {
-            restartAndReshuffle(p);
+            restartAndReshuffle();
         }
     }
 
-    public static void askUserForInput(Player p){
+    public static void askUserForInput(){
         System.out.println("Your cards are the following:");
-        for (Card c : p.ownCards) {
+        for (Card c : player.ownCards) {
             System.out.println(c.value + " of " + c.type + " ");
         }
-        System.out.println("Your total score right now is: " + p.currentTotal);
-        System.out.println("Dealer has a :" + dealer.ownCards.get(0).value + " of " + dealer.ownCards.get(0).type);
+        System.out.println("Your total score right now is: " + player.currentTotal);
+        System.out.println("Dealer has a: " + dealer.ownCards.get(0).value + " of " + dealer.ownCards.get(0).type);
         System.out.println("There are " + deck.size() + " cards left in the deck");
         System.out.println("Enter \"g\" to get another card. Enter \"f\" to fold. Enter \"q\" to quit the program. Then press \"Enter\"");
         String userInput = sc.nextLine();
 
         switch (userInput) {
             case "g":
-                p.getAnotherCard();
+                player.getAnotherCard();
                 break;
             case "f":
-                p.fold();
+                player.fold();
                 break;
             case "q":
                 quit();
@@ -107,25 +107,25 @@ public class Main {
         }
     }
 
-    public static void checkForWinner(Player p){
+    public static void checkForWinner(){
         dealer.dealerPlays();
 
-        if (p.currentTotal > 21) {
-            System.out.println("Awhh.. You lost because you went over 21 (" + p.currentTotal + "). Maybe try again!");
-        } else if (p.currentTotal > dealer.currentTotal || dealer.currentTotal > 21) {
+        if (player.currentTotal > 21) {
+            System.out.println("Awhh.. You lost because you went over 21 (" + player.currentTotal + "). Maybe try again!");
+        } else if (player.currentTotal > dealer.currentTotal || dealer.currentTotal > 21) {
             System.out.println("YOU WIN!!! Congratulations!!");
         } else {
-            System.out.println("Awhh, you lost, score not high enough: " + p.currentTotal);
+            System.out.println("Awhh, you lost, score not high enough: " + player.currentTotal);
         }
 
         System.out.println("You have three choices, play again \"p\", play again and shuffle deck \"s\" or quit the game \"q\"");
         String userInput = sc.nextLine();
         switch (userInput) {
             case "p":
-                Main.restartGame(p);
+                Main.restartGame();
                 break;
             case "s":
-                Main.restartAndReshuffle(p);
+                Main.restartAndReshuffle();
                 break;
             case "q":
                 quit();
@@ -133,13 +133,13 @@ public class Main {
         }
     }
 
-    public static void restartGame(Player p){
-        for (Card c : p.ownCards) {
+    public static void restartGame(){
+        for (Card c : player.ownCards) {
             graveyard.add(c);
         }
-        p.ownCards.clear();
-        giveCards(p, 2);
-        p.calculateCardTotal();
+        player.ownCards.clear();
+        giveCards(player, 2);
+        player.calculateCardTotal();
 
         for (Card c : dealer.ownCards) {
             graveyard.add(c);
@@ -148,15 +148,15 @@ public class Main {
         giveCards(dealer, 2);
         dealer.calculateCardTotal();
 
-        askUserForInput(p);
+        askUserForInput();
     }
 
-    public static void restartAndReshuffle(Player p){
+    public static void restartAndReshuffle(){
         // 1) Get rid of the cards and put them in deck
-        for (Card c : p.ownCards) {
+        for (Card c : player.ownCards) {
             deck.add(c);
         }
-        p.ownCards.clear();
+        player.ownCards.clear();
 
         for (Card c : dealer.ownCards) {
             deck.add(c);
@@ -168,7 +168,7 @@ public class Main {
         }
         graveyard.clear();
         shuffleDeck();
-        restartGame(p);
+        restartGame();
     }
 
     public static void shuffleDeck(){
@@ -177,74 +177,5 @@ public class Main {
 
     public static void quit(){
         System.out.println("Game ended. Thanks for playing!");
-        return;
-    }
-}
-
-class Player {
-    public ArrayList<Card> ownCards = new ArrayList<Card>();
-    public int currentTotal;
-
-    public void calculateCardTotal(){
-        int total = 0;
-        int amountOfAces = 0;
-        for (int i = 0; i < ownCards.size(); i++) {
-            String value = ownCards.get(i).value;
-            int intValue = 0;
-            if (value.equals("Ace")) {
-                amountOfAces++;
-            } else if (value.equals("Jack") || value.equals("Queen") || value.equals("King")) {
-                intValue = 10;
-            } else {
-                intValue = Integer.parseInt(value);
-            }
-            total += intValue;
-        }
-
-        // Choosing optimal value for Ace (1 or 11) depending on what the total becomes
-        while(amountOfAces > 0){
-            if (total >= 11) {
-                total += 1;
-            } else {
-                total += 11;
-            }
-            amountOfAces--;
-        }
-        this.currentTotal = total;
-    }
-
-    public void fold(){
-        Main.checkForWinner(this);
-    }
-
-    public void getAnotherCard(){
-        Main.giveCards(this, 1);
-        this.calculateCardTotal();
-        if (this.currentTotal > 21) {
-           Main.checkForWinner(this);
-        }
-        Main.askUserForInput(this);
-    }
-}
-
-class Dealer extends Player{
-    public void dealerPlays(){
-        while(this.currentTotal < 17) {
-            Main.giveCards(this, 1);
-            this.calculateCardTotal();
-            Card lastCard = this.ownCards.get(this.ownCards.size()-1);
-            System.out.println("Dealer drew a new card: " + lastCard.value + " of " + lastCard.type);
-            System.out.println("His total is now at: " + this.currentTotal);
-        }
-    }
-}
-
-class Card {
-    String type;
-    String value;
-
-    Card(String type, String value){
-        this.type = type;
-        this.value = value;
     }
 }
